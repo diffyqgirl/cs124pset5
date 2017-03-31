@@ -1,59 +1,57 @@
-import java.math.BigInteger;
-import java.util.ArrayList;
+import java.math.BigInteger ;
 import java.util.Arrays;
+import java.util.ArrayList;
+
 /*
-Code by 30943147 and 50996336
+Code by 30943147 with collaboration from 50996336 
 */
 public class q5
 {
-    public static void main(String[] args)
+    public static void main(String [] args)
     {
-        
+        // define this as a constant for use later
+        BigInteger TWO = new BigInteger("2");
+
+        //input
         BigInteger n = new BigInteger("294409");
-        BigInteger e = new BigInteger("147204");
+        BigInteger e = new BigInteger("73602");
         
-        BigInteger m = new BigInteger("2"); // this is a
+        BigInteger m = TWO; // this is a
         // break up e into powers of 2, and throw the relevent powers into a list
         ArrayList<Integer> pows = new ArrayList<Integer>();
         int max_pow = ((int) log2(e));
         pows.add(max_pow);
         BigInteger temp_e = e;
         int temp_pow = max_pow;
-        temp_e = temp_e.subtract((new BigInteger("2").pow(temp_pow)));
-        //while(temp_e > BigInteger.ZERO)
+        temp_e = temp_e.subtract((TWO.pow(temp_pow)));
+
         while(temp_e.compareTo(BigInteger.ZERO) == 1)
         {
-            //temp_e -= Math.pow(2, temp_pow);
-            
             temp_pow = ((int) log2(temp_e));
             pows.add(temp_pow);
-            temp_e = temp_e.subtract((new BigInteger("2").pow(temp_pow)));
-        }
-        System.out.println("Pows: " + Arrays.toString(pows.toArray()));
-        BigInteger[] mpows = new BigInteger[max_pow + 1];
-        mpows[0] = m;
-        for (int i = 1; i <= max_pow; i++)
-        {
-            //mpows[i] = (mpows[i-1]*mpows[i-1])%n;
-            mpows[i] = mpows[i-1].modPow(new BigInteger("2"), n);
+            temp_e = temp_e.subtract((TWO.pow(temp_pow)));
         }
 
-        BigInteger answer = BigInteger.ONE;
-        for (Integer i: pows)
+        BigInteger[] mpows = new BigInteger[max_pow + 1];
+        mpows [0] = m;
+        for (int i = 1; i <= max_pow; i++)
         {
-            //answer = (answer * mpows[i])%n;
-            answer = answer.multiply(mpows[i]).mod(n);
+            mpows[i] = mpows[i - 1].modPow(TWO, n);
         }
-        System.out.println("answer = " + answer);
-        System.out.println("answer^2 mod n = " + answer.multiply(answer).mod(n));
+
+        BigInteger answer = BigInteger.ONE ;
+        for (Integer p : pows) {
+            answer = answer.multiply(mpows[p]).mod(n);
+        }
+        System.out.println("ans is " + answer);
+        System.out.println("ans^2 mod n is " + answer.multiply(answer).mod(n));
     
     }
 
-    // returns floor of log2 x
-    public static int log2(BigInteger x)
+    // returns floor of log2 x, helper method
+    public static int log2(BigInteger bi)
     {
-        return x.bitLength() - 1;
+        return bi.bitLength() - 1;
     }
-
 
 }

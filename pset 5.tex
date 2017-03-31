@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{graphicx}
 \usepackage{amsmath}
+\usepackage{verbatim}
 \begin{document}
 \title{CS 124 Problem Set 5}
 \author{Author: 30943147. I collaborated with 50996336.}
@@ -33,6 +34,21 @@ $$X = \sum\limits_{i=0}^{2^{b-1}} (\frac{k}{m})^i (\frac{m-k}{m})^{n-i} {n \choo
 The probability that our arbitrarily chosen slot overflows is then equal to 
 $$P = 1-X = 1-(\sum\limits_{i=0}^{2^{b-1}} (\frac{k}{m})^i (\frac{m-k}{m})^{n-i} {n \choose i})$$
 \subsection*{b}
+Plugging in the given values into our equation and evaluating with Mathematica gives the following probabilities of overflow.
+\begin{center}
+\begin{tabular}{ | c | c | }
+\hline
+$b$ & P(a specific counter overflows) \\
+\hline\hline
+3 & $5.93 * 10^{-8}$ \\
+\hline
+4 & $3.37 * 10^{-18}$\\
+\hline
+5 & $4.49 * 10^{-42}$\\
+\hline
+\end{tabular}
+\end{center}
+I would choose to use a 4-bit counter. Even though the odds of a specific counter overflowing are order $10^{-8}$, there are $10^6$ counters. The probability that any counter will overflow seems subtle to calculate since whether two counters overflow is not linearly independent, but it seems like 3-bit counters will give a nontrivial probability that one of the $10^6$ counters will overflow. 4-bit counters bring the odds of a specific counter overflowing down to order $10^{-18}$, which is still tiny even when one considers $10^6$ counters. 
 
 \section*{Problem 3}
 \subsection*{a}
@@ -74,8 +90,8 @@ We can see that documents with resemblance $\leq$ 0.75 have only a tiny chance o
 \subsection*{b}
 Now we turn our attention to the possibility of collisions. We must modify our equation
 $$p'(r) = \sum\limits_{k=2}^6 {6 \choose k} r^{14k} (1-r^{14})^{6-k}$$
-by replacing $r^14$ with $r^14 + (1-r^{14}) \frac{1}{H}$, where $H$ is the size of our hashtable. $r^14$ is the probability that the group matches, and $(1-r^{14}) \frac{1}{H}$ is the probability that the group does not match but they happen to hash the same regardless. Making the correction for the 64-bit hash, ie $H = 2^{64}$, results in negligible changes
-$$p_{64}(r) = \sum\limits_{k=2}^6 {6 \choose k} (r^{14} + (1-r^{14}) \frac{1}{2^{64}})^k (1-r^{14})^{6-k}$$
+by replacing $r^{14}$ with $r^14 + (1-r^{14}) \frac{1}{H}$, where $H$ is the size of our hashtable. $r^14$ is the probability that the group matches, and $(1-r^{14}) \frac{1}{H}$ is the probability that the group does not match but they happen to hash the same regardless. We must also replace the probability they don't agree, ie $(1-r^{14})$, with $(1-r^{14} - \frac{1}{H}(1-r^{14})$, subtracting out the probability that they randomly hash the same despite being different. Making the correction for the 64-bit hash, ie $H = 2^{64}$, results in negligible changes
+$$p_{64}(r) = \sum\limits_{k=2}^6 {6 \choose k} (r^{14} + (1-r^{14}) \frac{1}{2^{64}})^k (1-r^{14}-\frac{1}{2^{64}}(1-r^{14}))^{6-k}$$
 Plotting $p_{64}(r)$ gives\\
 \includegraphics[scale=0.8]{p64.jpg}
 
@@ -107,7 +123,7 @@ $r$ & $p_{64}(r)$ \\
 This confirms our assumption in part a that the possibility of a collision on 64-bit hash values is negligible. 
 
 Now consider 16-bit hashtables
-$$p_{16}(r) = \sum\limits_{k=2}^6 {6 \choose k} (r^{14} + (1-r^{14}) \frac{1}{2^{16}})^k (1-r^{14})^{6-k}$$
+$$p_{16}(r) = \sum\limits_{k=2}^6 {6 \choose k} (r^{14} + (1-r^{14}) \frac{1}{2^{16}})^k (1-r^{14} -  (1-r^{14}) \frac{1}{2^{16}})^{6-k}$$
 Plotting $p_{16}$ gives\\
 \includegraphics[scale=0.8]{p16.jpg}
 
@@ -138,8 +154,7 @@ $r$ & $p_{16}(r)$ \\
 The differences do not show up in our 2-significant figure tables, but they are visible when looking at the longer forms of the decimals that Mathematica spits out. 
 
 Now consider 8-bit hashtables
-$$p_{8}(r) = \sum\limits_{k=2}^6 {6 \choose k} (r^{14} + (1-r^{14}) \frac{1}{2^{8}})^k (1-r^{14})^{6-k}$$
-The plot now looks slightly different from the 64-bit case even to the naked eye
+$$p_{8}(r) = \sum\limits_{k=2}^6 {6 \choose k} (r^{14} + (1-r^{14}) \frac{1}{2^{8}})^k (1-r^{14} -  (1-r^{14}) \frac{1}{2^{8}})^{6-k}$$
 \includegraphics[scale=0.8]{p8.jpg}
 
 \begin{center}
@@ -149,34 +164,48 @@ $r$ & $p_{16}(r)$ \\
 \hline\hline
 0.70 & 0.0017 \\
 \hline
-0.75 & 0.0067\\
+0.75 & 0.0066\\
 \hline
 0.80 & 0.030\\
 \hline
 0.85 & 0.13\\
 \hline
-0.90 & 0.43\\
+0.90 & 0.42\\
 \hline
-0.95 & 0.89\\
+0.95 & 0.88\\
 \hline
-0.98 & 1.00 \\
+0.98 & 0.996 \\
 \hline
-0.99 & 1.00 \\ 
+0.99 & 0.9998 \\ 
 \hline
 
 \end{tabular}
 \end{center}
-8-bit hashing produces noticeable differences compared to the 64-bit case, especially for the lower values of $r$. We probably do not want to mark a pair of documents with only 75 or 80 percent resemblance as duplicates, and the 8-bit hash makes it much more likely that we will do so than the 16 or 64-bit hash. 
+8-bit hashing produces noticeable but still small differences compared to the 64 or 16-bit hashing. I would probably still choose the 8-bit hashes to save space, because from looking at this data I doubt the errors resulting from collisions would be significant compared to the general probabilistic behaviour of the algorithm.  Also, false positives are not a big deal in the AltaVista example. 
 
 \section*{Problem 4}
+This algorithm will only work if all patterns $P_i$ are of the same length, but a piazza post said that we could make that assumption. 
+
+We use the fingerprinting algorithm described in lecture, with the following modification. We move through the document calculating
+$$N' = 10 \cdot (N - 10^{|P| - 1} \cdot a) + b$$
+where $a$ is the leftmost digit and $b$ is the rightmost digit of our old number $N$. After each time we compute $N'$, instead of merely comparing $N'$ to a single pattern $P$, we compare it to all of our $P_i$ and return true if any match. 
+
+Now, the chance of a false positive at a given step (with $k$ patterns) is
+$$1 - (1-\frac{\log_2 10^{|P|}}{\pi(z)})^k$$
+where $\frac{\log_2 10^{|P|}}{\pi(z)}$ is the probability of a false positive at a single step in the original algorithm. $\pi(z)$ is the number of primes $< z$, where $z$ is the randomly chosen prime we are using as a modulus. Using the union bound, this gives the probability of a false positive over the entire document as 
+$$|D|(1 - (1-\frac{\log_2 10^{|P|}}{\pi(z)})^k)$$
+where $|D|$ is the length of the document. 
+
 
 \section*{Problem 5}
-The code used in problem 5 is submitted as q5.java
+The code used in problem 5 is submitted as q5.java. Code is mostly copied from rsa.java. 
 \subsection*{a}
 We show that $n=636127$ is composite using Fermat's little theorem. We adapt our code from problem 6 (which I did first) to calculate
 $$2^{n-1} \mod n = 2^{318063} \mod 636127 = 469435 \neq 1$$
 $n=636127$ fails Fermat's little theorem for $a=2$, and therefore cannot be prime.  
 \subsection*{b}
+Fermat's little theorem is an if, not an if and only if. This means that there are composite numbers $n$ that have $a^{n-1} \mod n  = 1$. These are the Carmichael numbers, and $n=294409$ is one. This means we have to use the Rabin-Miller primality test to show that $n$ is composite. 
+
 We show that $n=294409$ is composite using the Rabin-Miller primality test with $a=2$. First, we decompose $n = 2^t u$ for $t=3$ and $u=36801$. Now, we use our power mod code in q5.java to calculate the following values (which I then checked with Mathematica's power mod function). 
 
 \begin{center}
@@ -193,6 +222,84 @@ $ 2 ^ {8u} \mod n = 2^{n-1} \mod n$ & $1$ \\
 \end{tabular}
 \end{center}
 We have found that $2^{2u}$ is a non-trivial square root of $2^{4u}$. Therefore, by the Rabin-Miller primality test, $n$ is composite. 
+
+\section*{Problem 6}
+The code for this section is submitted as rsa.java
+
+The message $m$, when encoded into ascii then converted to decimal, is $22100932013077800977026654273$. The corresponding rsa encryption is equal to $m^e \mod n$, where $(n, e)$ is the recipient's public key. The encrypted message is $27016764340118192395712492378$.
+
+\subsection*{Code}
+rsa.java calculates $m^e \mod n$ efficiently by using the repeated squaring algorithm, and by taking the $\mod n$ after every multiplication to keep the sizes of the numbers down. Even so, I had to use java's BigInteger class (which supports arbitrarily large numbers) because $m$ and $e$ are larger than the size of max long on my machine. Java has most built-in arithmetic methods for BigInteger, however, it is missing a method for logarithm. I got around this by using the bit length of the BigInteger in question, which is the ceiling of the log. Since all I needed was the floor of the logarithm (for decomposing $e$ into powers of 2 for repeated squaring), this was enough information.
+
+For repeated squaring, I used the same strategy that I used several psets ago for a repeated squaring problem. I decompose the exponent $e$ into powers of 2, then save $m^{2^0}$, $m^{2^1}$, ... $m^{2^{\lfloor \log_2 e \rfloor}}$ in an array mpows, then construct $m^e$ by multiplying the correct elements of the array together. 
+
+I checked my answers with Mathematica's built-in PowerMod function.
+
+\section*{Problem 7}
+Results are averaged over 10 trials. In each row, Bins is the number of bins with $n$ balls in it.
+\subsection*{a} 
+\begin{center}
+\begin{tabular} { | c | c | }
+\hline
+$n$ & Bins\\
+
+\hline\hline
+0 & 367878378 \\
+\hline
+1 & 367882968 \\
+\hline
+2 & 183935495 \\
+\hline 
+3 &  61315803\\
+\hline
+4 & 15327350\\
+\hline
+5 & 3065557\\
+\hline
+6 & 511157\\
+\hline
+7 & 73057\\
+\hline
+8 & 9111\\
+\hline
+9 & 1005\\
+\hline
+10 & 104\\
+\hline
+11 & 8\\
+\hline
+12 & 0 \\
+\hline
+\end{tabular}
+\end{center}
+\subsection*{b}
+\begin{center}
+\begin{tabular} { | c | c | }
+\hline
+$n$ & Bins\\
+
+\hline\hline
+0 & 238403309\\
+\hline
+1 &  532094246\\
+\hline
+2 & 220607587\\
+\hline 
+3 &  8888847\\
+\hline
+4 & 6008 \\
+\hline
+5 & 0 \\
+\hline
+
+\end{tabular}
+\end{center}
+
+As we would expect, using method b to assign buckets to bins greatly reduces the number of bins with more than a few balls in them. I  noticed that method b results in fewer bins with 0 balls in them than method a. This makes sense becuase when method b chooses 2 bins at random, it is likely that at least one of them will have 0 balls in it. Then, method b will put a ball in that bin, so that it now has 1 ball. Method a, in contrast, has only 1 chance per ball to choose a bin with 0 balls already in it. 
+
+When writing this code, the first time I ran method b I accidentally had it set to choose the bin with more balls rather than the bin with fewer balls. This resulted in bins with as many as 16 balls in them. 
+
+I used the strategy suggested in the hint for reducing the memory usage of the algorithm. Instead of creating 1 billion bins and keeping track of how many 
 
 
 \end{document}
